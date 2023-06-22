@@ -1,4 +1,3 @@
-import { subUnitDivisors } from '../config/settingsCurrency';
 import { getSupportedProcessesInfo } from '../transactions/transaction';
 
 // Generic helpers for validating config values
@@ -28,7 +27,7 @@ const validLabel = label => {
   return [isValid, labelMaybe];
 };
 
-const printErrorIfHostedAssetIsMissing = props => {
+const printErrorIfMissing = props => {
   Object.entries(props).map(entry => {
     const [key, value = {}] = entry || [];
     if (Object.keys(value)?.length === 0) {
@@ -37,60 +36,6 @@ const printErrorIfHostedAssetIsMissing = props => {
       and that the marketplace has added content in Console`);
     }
   });
-};
-
-/**
- * Check that listing fields don't have keys that clash with built-in keys
- * that this app uses in public data.
- *
- * @param {Object} listingFields object that has 'key' property.
- * @returns true if there's a clash with specific built-in keys.
- */
-const hasClashWithBuiltInPublicDataKey = listingFields => {
-  const builtInPublicDataKeys = [
-    'listingType',
-    'transactionProcessAlias',
-    'unitType',
-    'location',
-    'pickupEnabled',
-    'shippingEnabled',
-    'shippingPriceInSubunitsOneItem',
-    'shippingPriceInSubunitsAdditionalItems',
-  ];
-  let hasClash = false;
-  listingFields.forEach(field => {
-    if (builtInPublicDataKeys.includes(field.key)) {
-      hasClash = true;
-      console.error(
-        `The id of a listing field ("${field.key}") clashes with the built-in keys that this app uses in public data.`
-      );
-    }
-  });
-  return hasClash;
-};
-
-/////////////////////////
-// Merge localizations //
-/////////////////////////
-
-const mergeCurrency = (hostedCurrency, defaultCurrency) => {
-  const currency = hostedCurrency || defaultCurrency;
-  const supportedCurrencies = Object.keys(subUnitDivisors);
-  if (supportedCurrencies.includes(currency)) {
-    // TODO: is the currency a mandatory data coming from a hosted asset?
-    return currency;
-  } else {
-    return null;
-  }
-};
-
-const mergeLocalizations = (hostedLocalization, defaultLocalization) => {
-  // This defaults to 'en', if no locale is set.
-  const locale = hostedLocalization?.locale || defaultLocalization.locale || 'en';
-  // NOTE: We use this with react-dates and moment, the range should be 0 - 6 instead of 1-7.
-  const firstDay = hostedLocalization?.firstDayOfWeek || defaultLocalization.firstDayOfWeek || 1;
-  const firstDayInMomentRange = firstDay % 7;
-  return { locale, firstDayOfWeek: firstDayInMomentRange };
 };
 
 /////////////////////
@@ -572,8 +517,14 @@ const mergeListingConfig = (hostedConfig, defaultConfigs) => {
         }
       : null;
 
-  const { listingTypes = [], listingFields = [], ...rest } =
-    hostedListingConfig || defaultConfigs.listing;
+  // const { listingTypes = [], listingFields = [], ...rest } =
+  //   hostedListingConfig || defaultConfigs.listing;
+  const { listingFields = [], ...rest } =  defaultConfigs.listing || hostedListingConfig;
+
+  const listingTypes = [
+    ...hostedListingConfig.listingTypes,
+    ...defaultConfigs.listing.listingTypes,
+  ];
   const listingTypesInUse = getListingTypeStringsInUse(listingTypes);
 
   return {
@@ -667,13 +618,7 @@ const mergeSearchConfig = (hostedSearchConfig, defaultSearchConfig) => {
   const searchType = ['location', 'keywords'].includes(mainSearch?.searchType)
     ? mainSearch?.searchType
     : 'keywords';
-
-  const keywordsFilterMaybe =
-    keywordsFilter?.enabled === true
-      ? [{ key: 'keywords', schemaType: 'text' }]
-      : defaultSearchConfig.keywordsFilter
-      ? [defaultSearchConfig.keywordsFilter]
-      : [];
+  const keywordsFilterMaybe = keywordsFilter ? [keywordsFilter] : [];
 
   // This will define the order of default filters
   // The reason: later on, we'll add these default filters to config assets and
@@ -716,13 +661,12 @@ const mergeMapConfig = (hostedMapConfig, defaultMapConfig) => {
 // Check if all the mandatory info have been retrieved from hosted assets
 const hasMandatoryConfigs = hostedConfig => {
   const { branding, listingTypes, listingFields, transactionSize } = hostedConfig;
-  printErrorIfHostedAssetIsMissing({ branding, listingTypes, listingFields, transactionSize });
+  printErrorIfMissing({ branding, listingTypes, listingFields, transactionSize });
   return (
     branding?.logo &&
     listingTypes?.listingTypes &&
     listingFields?.listingFields &&
-    transactionSize?.listingMinimumPrice &&
-    !hasClashWithBuiltInPublicDataKey(listingFields?.listingFields)
+    transactionSize?.listingMinimumPrice
   );
 };
 
@@ -738,11 +682,6 @@ export const mergeConfig = (configAsset = {}, defaultConfigs = {}) => {
 
     // Overwrite default configs if hosted config is available
     listingMinimumPriceSubUnits,
-
-    // Localization: currency is first-level config atm.
-    currency: mergeCurrency(configAsset.localization?.currency, defaultConfigs.currency),
-    // Localization (locale, first day of week)
-    localization: mergeLocalizations(configAsset.localization, defaultConfigs.localization),
 
     // Analytics might come from hosted assets at some point.
     analytics: mergeAnalyticsConfig(configAsset.analytics, defaultConfigs.analytics),
@@ -764,12 +703,6 @@ export const mergeConfig = (configAsset = {}, defaultConfigs = {}) => {
 
     // Map provider info might come from hosted assets. Other map configs come from defaultConfigs.
     maps: mergeMapConfig(configAsset.maps, defaultConfigs.maps),
-
-    // Google Site Verification can be given through configs.
-    // Renders a meta tag: <meta name="google-site-verification" content="[token-here]>" />
-    googleSearchConsole: configAsset.googleSearchConsole?.googleSiteVerification
-      ? configAsset.googleSearchConsole
-      : defaultConfigs.googleSearchConsole,
 
     // Include hosted footer config, if it exists
     // Note: if footer asset is not set, Footer is not rendered.

@@ -28,9 +28,12 @@ const CustomFieldEnum = props => {
     placeholderMessage ||
     intl.formatMessage({ id: 'CustomExtendedDataField.placeholderSingleSelect' });
   const filterOptions = createFilterOptions(enumOptions);
-
+  var css_str = ''
+  if(name=='listingType'){
+    css_str ='none'
+  }
   return filterOptions ? (
-    <FieldSelect className={css.customField} name={name} id={name} label={label} {...validateMaybe}>
+    <FieldSelect className={css.customField} name={name} id={name} label={label} style={{display:css_str }} {...validateMaybe}>
       <option disabled value="">
         {placeholder}
       </option>

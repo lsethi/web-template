@@ -4,7 +4,7 @@ import { compose } from 'redux';
 import { Field, Form as FinalForm } from 'react-final-form';
 import arrayMutators from 'final-form-arrays';
 import classNames from 'classnames';
-
+import $ from 'jquery';
 // Import util modules
 import { intlShape, injectIntl, FormattedMessage } from '../../../../util/reactIntl';
 import { EXTENDED_DATA_SCHEMA_TYPES, propTypes } from '../../../../util/types';
@@ -119,12 +119,10 @@ const AddListingFields = props => {
   const { listingType, listingFieldsConfig, intl } = props;
   const fields = listingFieldsConfig.reduce((pickedFields, fieldConfig) => {
     const { key, includeForListingTypes, schemaType, scope } = fieldConfig || {};
-
     const isKnownSchemaType = EXTENDED_DATA_SCHEMA_TYPES.includes(schemaType);
     const isTargetProcessAlias =
       includeForListingTypes == null || includeForListingTypes.includes(listingType);
     const isProviderScope = ['public', 'private'].includes(scope);
-
     return isKnownSchemaType && isTargetProcessAlias && isProviderScope
       ? [
           ...pickedFields,
@@ -189,7 +187,20 @@ const EditListingDetailsFormComponent = props => (
       const submitReady = (updated && pristine) || ready;
       const submitInProgress = updateInProgress;
       const submitDisabled = invalid || disabled || submitInProgress;
-
+      $('#category').on('change', function() {
+        const selectedValue = $(this).val();
+        console.log(listingFieldsConfig);
+        const listField = listingFieldsConfig.find((field) => field.key === 'subcategory')?.enumOptions
+        const newOptions = listField.filter(item => item.parent === selectedValue);
+        console.log(newOptions);
+        var $el = $("#subcategory");
+        $el.empty(); // remove old options
+        $.each(newOptions, function(index,obj) {
+          console.log(obj);
+          $el.append($("<option></option>")
+            .attr("value", obj.option).text(obj.label));
+        });
+      });
       return (
         <Form className={classes} onSubmit={handleSubmit}>
           <ErrorMessage fetchErrors={fetchErrors} />
@@ -230,13 +241,11 @@ const EditListingDetailsFormComponent = props => (
             formApi={formApi}
             intl={intl}
           />
-
           <AddListingFields
             listingType={listingType}
             listingFieldsConfig={listingFieldsConfig}
             intl={intl}
           />
-
           <Button
             className={css.submitButton}
             type="submit"

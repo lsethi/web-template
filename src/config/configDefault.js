@@ -25,7 +25,7 @@ const defaultConfig = {
   listingMinimumPriceSubUnits: 500,
 
   // Marketplace name is needed for microcopy and in meta tags (bots and social media sharing reads those)
-  marketplaceName: 'Biketribe',
+  marketplaceName: 'ModTradePro',
 
   // Modify Stripe configuration in stripeConfig.js
   // - picks REACT_APP_STRIPE_PUBLISHABLE_KEY from environment variables
@@ -57,13 +57,12 @@ const defaultConfig = {
   // If you want to change the language, remember to also change the
   // locale data and the messages in the app.js file.
   localization: {
-    locale: 'en-US',
+    locale: 'en',
     // First day of week
-    // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Locale/getWeekInfo#return_value
+    // 0: Sunday
     // 1: Monday
     // ...
     // 6: Saturday
-    // 7: Sunday
     firstDayOfWeek: 1,
   },
 
@@ -85,8 +84,6 @@ const defaultConfig = {
     //       It might take some time before these are actually available through hosted assets.
     // maps: '/integrations/map.json',
     // analytics: '/integrations/analytics.json',
-    // googleSearchConsole: '/integrations/google-search-console.json',
-    // localization: '/general/localization.json',
   },
 
   // Optional
@@ -103,13 +100,6 @@ const defaultConfig = {
   // depending on jurisdiction (e.g. EU countries), since it relies on cookies.
   analytics: {
     googleAnalyticsId: process.env.REACT_APP_GOOGLE_ANALYTICS_ID,
-  },
-
-  // Optional
-  // This creates meta tag for Google Search Console verification
-  // I.e. <meta name=“google-site-verification” content=“GOOGLE_SITE_VERIFICATION_TOKEN”/>
-  googleSearchConsole: {
-    googleSiteVerification: null, // Add google-site-verification token as a string
   },
 
   // Optional
