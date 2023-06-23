@@ -153,7 +153,6 @@ const setNoAvailabilityForProductListings = processAlias => {
 const getInitialValues = (props, existingListingType, listingTypes, listingFieldsConfig) => {
   const { description, title, publicData, privateData } = props?.listing?.attributes || {};
   const { listingType } = publicData;
-
   // Initial values for the form
   return {
     title,
@@ -184,8 +183,7 @@ const EditListingDetailsPanel = props => {
   const classes = classNames(rootClassName || css.root, className);
   const { publicData, state } = listing?.attributes || {};
   const listingTypes = config.listing.listingTypes;
-  const listingFieldsConfig = config.listing.listingFields;
-
+  const listingFieldsConfig = config.listing.listingFields.filter(obj => obj.key !== "listingType");;
   const { hasExistingListingType, existingListingType } = hasSetListingType(publicData);
   const hasValidExistingListingType =
     hasExistingListingType &&

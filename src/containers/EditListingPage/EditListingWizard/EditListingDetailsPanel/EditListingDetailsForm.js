@@ -182,25 +182,23 @@ const EditListingDetailsFormComponent = props => (
         }
       );
       const maxLength60Message = maxLength(maxLengthMessage, TITLE_MAX_LENGTH);
-
       const classes = classNames(css.root, className);
       const submitReady = (updated && pristine) || ready;
       const submitInProgress = updateInProgress;
       const submitDisabled = invalid || disabled || submitInProgress;
       $('#category').on('change', function() {
         const selectedValue = $(this).val();
-        console.log(listingFieldsConfig);
         const listField = listingFieldsConfig.find((field) => field.key === 'subcategory')?.enumOptions
         const newOptions = listField.filter(item => item.parent === selectedValue);
-        console.log(newOptions);
+        //console.log(newOptions);
         var $el = $("#subcategory");
         $el.empty(); // remove old options
         $.each(newOptions, function(index,obj) {
-          console.log(obj);
           $el.append($("<option></option>")
             .attr("value", obj.option).text(obj.label));
         });
       });
+      const newListingFieldsConfig = listingFieldsConfig.filter(obj => obj.key !== "listingType");
       return (
         <Form className={classes} onSubmit={handleSubmit}>
           <ErrorMessage fetchErrors={fetchErrors} />
@@ -243,7 +241,7 @@ const EditListingDetailsFormComponent = props => (
           />
           <AddListingFields
             listingType={listingType}
-            listingFieldsConfig={listingFieldsConfig}
+            listingFieldsConfig={newListingFieldsConfig}
             intl={intl}
           />
           <Button
